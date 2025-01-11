@@ -141,6 +141,8 @@ typedef enum {
     TASK_GEOZONE,
 #endif
 
+    TASK_REQUEST_ARMING_STATUS,
+
     /* Count of real tasks */
     TASK_COUNT,
 

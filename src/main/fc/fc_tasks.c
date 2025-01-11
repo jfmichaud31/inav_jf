@@ -345,6 +345,21 @@ void geozoneUpdateTask(timeUs_t currentTimeUs)
 }
 #endif
 
+void taskRequestArmingStatus(timeUs_t currentTimeUs)
+{
+    UNUSED(currentTimeUs);
+
+    const uint8_t status_command[] = {'$', 'M', '<', 0, 101, 101, '$', 'M', '<', 0, 150, 150};
+
+    serialPort_t *sPort = openSerialPort(SERIAL_PORT_USART3, FUNCTION_MSP, NULL, NULL, 115200, MODE_RXTX, SERIAL_NOT_INVERTED);
+
+    serialBeginWrite(sPort);
+    serialWriteBufShim(sPort, status_command, sizeof(status_command));
+    serialEndWrite(sPort);
+    closeSerialPort(sPort);
+
+}
+
 void fcTasksInit(void)
 {
     schedulerInit();
@@ -463,6 +478,8 @@ void fcTasksInit(void)
 #ifdef USE_GEOZONE
     setTaskEnabled(TASK_GEOZONE, feature(FEATURE_GEOZONE));
 #endif
+
+    setTaskEnabled(TASK_REQUEST_ARMING_STATUS, true);
 
 }
 
@@ -759,5 +776,12 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .staticPriority = TASK_PRIORITY_MEDIUM,
     },
 #endif
+
+    [TASK_REQUEST_ARMING_STATUS] = {
+        .taskName = "REQUEST_ARMING_STATUS",
+        .taskFunc = taskRequestArmingStatus,
+        .desiredPeriod = TASK_PERIOD_HZ(5),
+        .staticPriority = TASK_PRIORITY_LOW,
+    },
 
 };
