@@ -1737,6 +1737,13 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         }
         break;
 #endif
+
+    case MSP2_COMMON_GET_RADAR_GPS:
+        for (uint8_t i = 0; i < RADAR_MAX_POIS; i++){
+            sbufWriteDataSafe(dst, &radar_pois[i].gps, sizeof(gpsLocation_t));
+        }
+        break;
+
     default:
         return false;
     }
@@ -1820,7 +1827,7 @@ static mspResult_e mspFcGeozoneVerteciesOutCommand(sbuf_t *dst, sbuf_t *src)
             return MSP_RESULT_ACK;
         } else {
             return MSP_RESULT_ERROR;
-        } 
+        }
     } else {
         return MSP_RESULT_ERROR;
     }
@@ -3431,13 +3438,13 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
             if (!sbufReadU8Safe(&geozoneId, src) || geozoneId >= MAX_GEOZONES_IN_CONFIG) {
                 return MSP_RESULT_ERROR;
             }
-            
+
             geozoneResetVertices(geozoneId, -1);
-            geoZonesConfigMutable(geozoneId)->type = sbufReadU8(src); 
+            geoZonesConfigMutable(geozoneId)->type = sbufReadU8(src);
             geoZonesConfigMutable(geozoneId)->shape = sbufReadU8(src);
             geoZonesConfigMutable(geozoneId)->minAltitude = sbufReadU32(src);
-            geoZonesConfigMutable(geozoneId)->maxAltitude = sbufReadU32(src);  
-            geoZonesConfigMutable(geozoneId)->isSealevelRef = sbufReadU8(src);   
+            geoZonesConfigMutable(geozoneId)->maxAltitude = sbufReadU32(src);
+            geoZonesConfigMutable(geozoneId)->isSealevelRef = sbufReadU8(src);
             geoZonesConfigMutable(geozoneId)->fenceAction = sbufReadU8(src);
             geoZonesConfigMutable(geozoneId)->vertexCount = sbufReadU8(src);
         } else {
@@ -3520,7 +3527,11 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
         sbufReadU8Safe(&tmp_u8, src);
         if ((dataSize == (OSD_CUSTOM_ELEMENT_TEXT_SIZE - 1) + (CUSTOM_ELEMENTS_PARTS * 3) + 4) && (tmp_u8 < MAX_CUSTOM_ELEMENTS)) {
             for (int i = 0; i < CUSTOM_ELEMENTS_PARTS; i++) {
-                osdCustomElementsMutable(tmp_u8)->part[i].type = sbufReadU8(src);
+                uint8_t type = sbufReadU8(src);
+                if (type >= CUSTOM_ELEMENT_TYPE_END)
+                    return MSP_RESULT_ERROR;
+
+                osdCustomElementsMutable(tmp_u8)->part[i].type = type;
                 osdCustomElementsMutable(tmp_u8)->part[i].value = sbufReadU16(src);
             }
             osdCustomElementsMutable(tmp_u8)->visibility.type = sbufReadU8(src);

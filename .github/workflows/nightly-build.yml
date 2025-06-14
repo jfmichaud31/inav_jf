@@ -5,7 +5,8 @@ name: Build pre-release
 on: 
   push:
     branches:
-    - master
+      - master
+      - maintenance-8.x.x
     paths:
       - 'src/**'
       - '.github/**'
@@ -44,7 +45,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: resources/sitl/linux
-          pattern: inav-*SITIL-Linux
+          pattern: inav-*SITL-Linux
+          merge-multiple: true
+      - name: download sitl linux aarch64
+        uses: actions/download-artifact@v4
+        with:
+          path: resources/sitl/linux/arm64
+          pattern: inav-*SITL-Linux-aarch64
           merge-multiple: true
       - name: download sitl windows
         uses: actions/download-artifact@v4
